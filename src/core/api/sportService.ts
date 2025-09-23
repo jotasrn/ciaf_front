@@ -16,18 +16,21 @@ class SportService {
   
   private convertApiSportToSport(apiSport: ApiSport): Sport {
     const sportId = extractId(apiSport._id);
+
+    // CORREÇÃO: Criamos uma variável 'categories' com o tipo explícito Category[].
+    // Isso torna o uso do tipo 'Category' inconfundível para o linter.
+    const categories: Category[] = (apiSport.categorias || []).map((apiCategory: ApiCategory) => ({
+      id: extractId(apiCategory.id_categoria),
+      name: apiCategory.nome,
+      sportId: sportId,
+      ageRange: apiCategory.faixa_etaria,
+    }));
+
     return {
       id: sportId,
       name: apiSport.nome,
       icon: apiSport.icone,
-      // CORREÇÃO: Adicionamos a anotação de tipo ': Category' para
-      // deixar explícito para o linter que o tipo está sendo usado.
-      categories: (apiSport.categorias || []).map((apiCategory: ApiCategory): Category => ({
-        id: extractId(apiCategory.id_categoria),
-        name: apiCategory.nome,
-        sportId: sportId,
-        ageRange: apiCategory.faixa_etaria,
-      })),
+      categories: categories, // Usamos a variável aqui.
     };
   }
 
