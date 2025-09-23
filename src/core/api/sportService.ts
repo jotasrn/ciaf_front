@@ -1,19 +1,28 @@
 // src/core/api/sportService.ts
 
 import apiClient from './apiClient';
-import { ApiSport, ApiCategory, extractId } from './types'; // Agora a importação funcionará
+import { ApiSport, ApiCategory, extractId } from './types';
 import { Sport, Category } from '../../types';
 
 class SportService {
+  private static instance: SportService;
+
+  static getInstance(): SportService {
+    if (!SportService.instance) {
+      SportService.instance = new SportService();
+    }
+    return SportService.instance;
+  }
+  
   private convertApiSportToSport(apiSport: ApiSport): Sport {
     const sportId = extractId(apiSport._id);
     return {
       id: sportId,
       name: apiSport.nome,
       icon: apiSport.icone,
-      // Corrigido: Adicionamos o tipo explícito para 'apiCategory' e 'Category',
-      // o que resolve o erro de 'any' e o de 'Category' não utilizada.
-      categories: apiSport.categorias.map((apiCategory: ApiCategory): Category => ({
+      // CORREÇÃO: Adicionamos a anotação de tipo ': Category' para
+      // deixar explícito para o linter que o tipo está sendo usado.
+      categories: (apiSport.categorias || []).map((apiCategory: ApiCategory): Category => ({
         id: extractId(apiCategory.id_categoria),
         name: apiCategory.nome,
         sportId: sportId,
@@ -60,4 +69,4 @@ class SportService {
   }
 }
 
-export default new SportService();
+export default SportService.getInstance();
