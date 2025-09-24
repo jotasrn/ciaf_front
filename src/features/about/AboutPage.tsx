@@ -1,10 +1,6 @@
 import React from 'react';
-import { ArrowLeft, ExternalLink, Code, Users, Heart } from 'lucide-react';
+import { ExternalLink, Code, Users, Heart } from 'lucide-react';
 import Button from '../../components/ui/Button';
-
-interface AboutPageProps {
-  onBack: () => void;
-}
 
 const developers = [
   {
@@ -14,34 +10,31 @@ const developers = [
   },
   {
     name: 'Cadu',
-    role: 'Frontend Developer',
+    role: 'Backend Developer',
     linkedin: 'https://www.linkedin.com/in/carlos-eduardo-ribeiro-ferreira-5011631a6/'
   },
   {
     name: 'Pedro',
-    role: 'Backend Developer',
+    role: 'Product owner',
     linkedin: 'https://www.linkedin.com/in/pedro-henrique-069916332'
   },
   {
     name: 'Yuri',
-    role: 'UI/UX Designer',
+    role: 'Analista de bancos de dados',
     linkedin: 'https://www.linkedin.com/in/yuri-lucas-0a0746261/'
   }
 ];
 
-export default function AboutPage({ onBack }: AboutPageProps) {
+// As props 'onBack' foram removidas da definição do componente
+export default function AboutPage() {
   const handleLinkedInClick = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
+      {/* Header - Botão Voltar foi removido */}
       <div className="flex items-center mb-8">
-        <Button variant="ghost" onClick={onBack} className="mr-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
-        </Button>
         <h1 className="text-3xl font-bold text-gray-900">Sobre o Sistema</h1>
       </div>
 

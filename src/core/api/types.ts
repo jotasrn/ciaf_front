@@ -62,7 +62,7 @@ export interface ApiPresenca {
 }
 
 export interface ApiCategory {
-  id_categoria: MongoId;
+  _id: MongoId;
   nome: string;
   faixa_etaria: string;
 }

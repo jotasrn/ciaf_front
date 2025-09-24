@@ -20,7 +20,7 @@ class SportService {
     // CORREÇÃO: Criamos uma variável 'categories' com o tipo explícito Category[].
     // Isso torna o uso do tipo 'Category' inconfundível para o linter.
     const categories: Category[] = (apiSport.categorias || []).map((apiCategory: ApiCategory) => ({
-      id: extractId(apiCategory.id_categoria),
+       id: extractId(apiCategory._id),
       name: apiCategory.nome,
       sportId: sportId,
       ageRange: apiCategory.faixa_etaria,
@@ -36,13 +36,14 @@ class SportService {
 
   async getSports(): Promise<Sport[]> {
     try {
-      const response = await apiClient.get<ApiSport[]>('/esportes');
-      return response.data.map(this.convertApiSportToSport);
+     const response = await apiClient.get<ApiSport[]>('/esportes/com-categorias');
+      return response.data.map(apiSport => this.convertApiSportToSport(apiSport));
     } catch (error) {
       console.error('Erro ao buscar esportes:', error);
       throw new Error('Não foi possível carregar os esportes.');
     }
   }
+
 
   async createSport(sportData: { nome: string; icone: string }): Promise<void> {
     try {

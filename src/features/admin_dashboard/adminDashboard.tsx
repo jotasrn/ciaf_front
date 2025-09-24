@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Users, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
 import DashboardService from '../../core/api/dashboardService';
 import SportService from '../../core/api/sportService';
-import { AulaDetalhes } from '../../core/api/aulaService'; // Importação do tipo correto
-import { DashboardStats, Sport, Category } from '../../types';
+import UserService from '../../core/api/userService';
+import { AulaDetalhes } from '../../core/api/aulaService';
+import { DashboardStats, Sport, Category, Student } from '../../types';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import SportsManagement from './sportsManagement';
+import AttendanceModal from '../shared/AttendanceModal'; // Importa o novo modal compartilhado
 
 // Componente KPICard (sem alterações)
 interface KPICardProps {
@@ -68,11 +70,18 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     unpaidStudents: 0,
   });
   const [sports, setSports] = useState<Sport[]>([]);
-  const [aulasHoje, setAulasHoje] = useState<AulaDetalhes[]>([]); // CORREÇÃO: Usando o tipo AulaDetalhes
+  const [aulasHoje, setAulasHoje] = useState<AulaDetalhes[]>([]);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showSportsModal, setShowSportsModal] = useState(false);
+
+  // Estados para o modal de pagamentos pendentes
+  const [showUnpaidModal, setShowUnpaidModal] = useState(false);
+  const [unpaidStudents, setUnpaidStudents] = useState<Student[]>([]);
+  const [isLoadingUnpaid, setIsLoadingUnpaid] = useState(false);
+
+  // Estado para o modal de chamada do admin
+  const [selectedAula, setSelectedAula] = useState<AulaDetalhes | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -80,7 +89,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
   const loadDashboardData = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const [statsData, sportsData, aulasData] = await Promise.all([
         DashboardService.getDashboardStats(),
@@ -92,7 +100,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       setAulasHoje(aulasData);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
-      setError('Falha ao carregar dados do dashboard.');
+      alert('Falha ao carregar dados do dashboard.');
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +108,21 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
   const handleSportClick = (sport: Sport) => {
     setSelectedSport(sport);
+  };
+  
+  const handleOpenUnpaidModal = async () => {
+    setShowUnpaidModal(true);
+    setIsLoadingUnpaid(true);
+    try {
+      const studentsData = await UserService.getUnpaidStudents();
+      setUnpaidStudents(studentsData);
+    } catch (error) {
+      console.error(error);
+      alert('Não foi possível carregar a lista de alunos pendentes.');
+      setShowUnpaidModal(false);
+    } finally {
+      setIsLoadingUnpaid(false);
+    }
   };
   
   return (
@@ -125,6 +148,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           value={dashboardStats.unpaidStudents}
           icon={<AlertCircle className="w-6 h-6 text-white" />}
           color="bg-red-500"
+          onClick={handleOpenUnpaidModal}
         />
       </div>
 
@@ -134,9 +158,8 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           <p className="text-gray-600 mt-2">Carregando dados...</p>
         </div>
       )}
-      {error && <p className="text-center text-red-500">{error}</p>}
 
-      {!isLoading && !error && (
+      {!isLoading && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Navegar por Esportes */}
           <div className="lg:col-span-2">
@@ -164,7 +187,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-gray-900">Aulas do Dia</h3>
-                    {/* CORREÇÃO: Botão de refresh agora funciona */}
                     <Button variant="ghost" size="sm" onClick={loadDashboardData} disabled={isLoading}>
                       <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                     </Button>
@@ -176,10 +198,14 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                 {aulasHoje.length > 0 ? (
                   <div className="space-y-4">
                     {aulasHoje.map(aula => (
-                       <div key={aula.id} className="p-3 bg-gray-50 rounded-lg">
+                        <div 
+                          key={aula.id} 
+                          className="p-3 bg-gray-50 rounded-lg cursor-pointer transition-all hover:bg-blue-50 hover:ring-1 hover:ring-blue-300"
+                          onClick={() => setSelectedAula(aula)}
+                        >
                           <p className="font-semibold text-gray-800">{aula.turmaNome}</p>
                           <p className="text-sm text-gray-500">{aula.esporteNome} - {aula.totalPresentes}/{aula.totalAlunosNaTurma} presentes</p>
-                       </div>
+                        </div>
                     ))}
                   </div>
                 ) : (
@@ -213,9 +239,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                 </div>
               </div>
             ))}
-             {selectedSport.categories.length === 0 && (
+              {selectedSport.categories.length === 0 && (
                 <p className="text-center text-gray-500 py-4">Nenhuma categoria cadastrada para este esporte.</p>
-            )}
+              )}
           </div>
         )}
       </Modal>
@@ -228,6 +254,46 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       >
         <SportsManagement />
       </Modal>
+
+      <Modal
+        isOpen={showUnpaidModal}
+        onClose={() => setShowUnpaidModal(false)}
+        title="Alunos com Pagamento Pendente"
+        size="lg"
+      >
+        {isLoadingUnpaid ? (
+          <div className="text-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2">Carregando...</p>
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-96 overflow-y-auto p-1">
+            {unpaidStudents.length > 0 ? (
+              unpaidStudents.map(student => (
+                <div key={student.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-800">{student.name}</p>
+                    <p className="text-sm text-gray-500">Responsável: {student.guardian?.name || 'N/A'}</p>
+                  </div>
+                  <p className="text-sm text-red-600 font-medium">Vencimento: {student.paymentDue}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-center p-8 text-gray-500">Nenhum aluno com pagamento pendente encontrado.</p>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal de Chamada para o Admin */}
+      {selectedAula && (
+        <AttendanceModal 
+          isOpen={!!selectedAula}
+          onClose={() => setSelectedAula(null)}
+          aula={selectedAula}
+          onSave={loadDashboardData}
+        />
+      )}
     </div>
   );
 }

@@ -154,7 +154,26 @@ class UserService {
       throw new Error('Erro ao desativar usuário');
     }
   }
+
+  async updateStudentPaymentStatus(studentId: string, isPaid: boolean): Promise<void> {
+    try {
+      const newStatus = isPaid ? 'pago' : 'pendente';
+      await apiClient.put(`/usuarios/${studentId}/pagamento`, { status: newStatus });
+    } catch (error) {
+      console.error('Erro ao atualizar status de pagamento:', error);
+      throw new Error('Não foi possível atualizar o pagamento do aluno.');
+    }
+  }
+
+    async getUnpaidStudents(): Promise<Student[]> {
+    try {
+      const response = await apiClient.get<ApiUser[]>('/usuarios?perfil=aluno&status_pagamento=pendente');
+      return response.data.map(apiUser => this.convertApiUserToStudent(apiUser));
+    } catch (error) {
+      console.error('Erro ao buscar alunos inadimplentes:', error);
+      throw new Error('Erro ao carregar lista de alunos com pagamentos pendentes.');
+    }
+  }
 }
 
-// CORREÇÃO APLICADA AQUI: Exportamos a instância, não a classe.
 export default UserService.getInstance();

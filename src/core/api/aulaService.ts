@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { saveAs } from 'file-saver';
 import { ApiAula, ApiPresenca, MarcarPresencaRequest, extractId, extractDate, formatDateForApi } from './types';
 
 export interface AulaDetalhes {
@@ -21,7 +22,7 @@ class AulaService {
   private convertApiAulaToAulaDetalhes(apiAula: ApiAula): AulaDetalhes {
     return {
       id: extractId(apiAula._id),
-      data: extractDate(apiAula.data), // Agora retorna string, que é o tipo esperado
+      data: extractDate(apiAula.data), 
       status: apiAula.status,
       turmaNome: apiAula.turma_nome,
       esporteNome: apiAula.esporte_nome,
@@ -91,6 +92,21 @@ class AulaService {
       throw new Error('Erro ao salvar chamada');
     }
   }
+
+  async exportarChamada(aulaId: string, formato: 'pdf' | 'xlsx'): Promise<void> {
+    try {
+      const response = await apiClient.get(`/aulas/${aulaId}/exportar?formato=${formato}`, {
+        responseType: 'blob', // Essencial para receber arquivos
+      });
+
+      const nomeArquivo = `chamada_aula_${aulaId}.${formato}`;
+      saveAs(new Blob([response.data]), nomeArquivo);
+    } catch (error) {
+      console.error(`Erro ao exportar chamada para ${formato}:`, error);
+      throw new Error(`Não foi possível gerar o arquivo ${formato}.`);
+    }
+  }
 }
+
 
 export default new AulaService();
