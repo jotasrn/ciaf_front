@@ -155,17 +155,26 @@ export interface LoginApiResponse {
 
 export const extractId = (mongoId: MongoId): string => mongoId.$oid;
 
-export const extractDate = (mongoDate?: MongoDate | string): string => {
-  if (!mongoDate) return '';
+export const extractDate = (mongoDate?: MongoDate | string | null): string => {
+  // Se o valor for nulo, indefinido ou uma string vazia, retorna '' imediatamente.
+  if (!mongoDate) {
+    return '';
+  }
+
+  // Se já for uma string no formato YYYY-MM-DD, retorna diretamente.
   if (typeof mongoDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(mongoDate)) {
     return mongoDate;
   }
-  const dateObj =
-    typeof mongoDate === 'string'
-      ? new Date(mongoDate)
-      : new Date(mongoDate.$date);
+
+  const dateValue = typeof mongoDate === 'string' ? mongoDate : mongoDate.$date;
+
+  const dateObj = new Date(dateValue);
+  if (isNaN(dateObj.getTime())) {
+    return '';
+  }
   return dateObj.toISOString().split('T')[0];
 };
+
 
 export const formatDateForApi = (date: Date): string =>
   date.toISOString().split('T')[0];

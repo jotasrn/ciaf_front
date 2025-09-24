@@ -1,7 +1,5 @@
-// src/core/api/turmaService.ts
-
 import apiClient from './apiClient';
-import { ApiTurma, CreateTurmaRequest } from './types';
+import { ApiTurma, CreateTurmaRequest, extractId } from './types'; // Importando extractId
 import { Class } from '../../types';
 
 class TurmaService {
@@ -24,25 +22,26 @@ class TurmaService {
   
   private convertApiTurmaToClass(apiTurma: ApiTurma): Class {
     return {
-      id: apiTurma._id.$oid,
+      id: extractId(apiTurma._id),
       name: apiTurma.nome,
-      sportId: apiTurma.esporte._id.$oid,
+      sportId: extractId(apiTurma.esporte._id),
       sportName: apiTurma.esporte.nome,
-      categoryId: apiTurma.categoria, // O backend retorna o nome da categoria aqui
-      professorId: apiTurma.professor._id.$oid,
-      students: apiTurma.alunos.map(aluno => aluno._id.$oid),
+      categoryId: apiTurma.categoria, // O backend retorna o nome, o frontend pode precisar do ID depois
+      professorId: extractId(apiTurma.professor._id),
+      students: apiTurma.alunos.map(aluno => extractId(aluno._id)),
       schedule: apiTurma.horarios.map(horario => ({
         dayOfWeek: this.convertDayNameToNumber(horario.dia_semana),
         time: horario.hora_inicio,
       })),
-      maxStudents: apiTurma.total_alunos || 20, // Usar o total ou um padrão
+      maxStudents: apiTurma.total_alunos || 20,
     };
   }
 
   async getTurmas(): Promise<Class[]> {
     try {
       const response = await apiClient.get<ApiTurma[]>('/turmas');
-      return response.data.map(this.convertApiTurmaToClass);
+      // --- CORREÇÃO APLICADA AQUI ---
+      return response.data.map(apiTurma => this.convertApiTurmaToClass(apiTurma));
     } catch (error) {
       console.error('Erro ao buscar turmas:', error);
       throw new Error('Erro ao carregar lista de turmas');
@@ -52,7 +51,8 @@ class TurmaService {
   async getTurmasByProfessor(): Promise<Class[]> {
     try {
       const response = await apiClient.get<ApiTurma[]>('/turmas/professor/me');
-      return response.data.map(this.convertApiTurmaToClass);
+      // --- CORREÇÃO APLICADA AQUI ---
+      return response.data.map(apiTurma => this.convertApiTurmaToClass(apiTurma));
     } catch (error) {
       console.error('Erro ao buscar turmas do professor:', error);
       throw new Error('Erro ao carregar suas turmas');
@@ -87,5 +87,4 @@ class TurmaService {
   }
 }
 
-// CORREÇÃO: Exportamos a instância única do serviço
 export default TurmaService.getInstance();

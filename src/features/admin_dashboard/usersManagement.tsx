@@ -12,14 +12,14 @@ import Dropdown from '../../components/ui/Dropdown';
 type UserFormData = Partial<User> & { password?: string };
 
 // Componente de formulário para reutilização
-const UserForm = ({ 
-  user, 
-  onSave, 
-  onCancel 
-}: { 
-  user: UserFormData, 
-  onSave: (data: UserFormData) => void, 
-  onCancel: () => void 
+const UserForm = ({
+  user,
+  onSave,
+  onCancel
+}: {
+  user: UserFormData,
+  onSave: (data: UserFormData) => void,
+  onCancel: () => void
 }) => {
   const [formData, setFormData] = useState(user);
 
@@ -67,7 +67,7 @@ export default function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Estados de UI
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'professor'>('all');
@@ -105,7 +105,7 @@ export default function UsersManagement() {
 
   const handleSaveUser = async (formData: UserFormData) => {
     const { id, name, email, role, password = '' } = formData;
-    
+
     try {
       if (id) {
         await UserService.updateUser(id, { name, email, role });
@@ -138,7 +138,7 @@ export default function UsersManagement() {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -190,13 +190,25 @@ export default function UsersManagement() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((user) => (
+                // --- CORREÇÃO ESTÁ NESTA LINHA ---
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
                     <div className="text-sm text-gray-500">{user.email}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap"><span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getRoleBadgeColor(user.role)}`}>{user.role}</span></td>
-                  <td className="px-6 py-4 whitespace-nowrap"><Dropdown items={[{ label: 'Editar', icon: <Edit className="w-4 h-4" />, onClick: () => handleOpenModal(user) }, { label: 'Desativar', icon: <Trash2 className="w-4 h-4" />, onClick: () => handleDelete(user), variant: 'danger' }]} /></td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getRoleBadgeColor(user.role)}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <Dropdown
+                      items={[
+                        { label: 'Editar', icon: <Edit className="w-4 h-4" />, onClick: () => handleOpenModal(user) },
+                        { label: 'Desativar', icon: <Trash2 className="w-4 h-4" />, onClick: () => handleDelete(user), variant: 'danger' }
+                      ]}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
