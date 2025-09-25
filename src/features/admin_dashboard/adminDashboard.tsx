@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
 import DashboardService from '../../core/api/dashboardService';
 import SportService from '../../core/api/sportService';
@@ -9,12 +9,12 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import SportsManagement from './sportsManagement';
 import AttendanceModal from '../shared/AttendanceModal';
-import AttendanceHistory from './AttendanceHistory'; // Importa o novo componente
+import AttendanceHistory from './AttendanceHistory';
 
 // Componente KPICard
 interface KPICardProps {
   title: string;
-  value: number;
+  value: number | string; // Aceita string para o estado de carregamento
   icon: React.ReactNode;
   color: string;
   onClick?: () => void;
@@ -63,11 +63,9 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
-    totalStudents: 0,
-    totalClasses: 0,
-    unpaidStudents: 0,
-  });
+  // --- ESTADOS ---
+  // Inicia os estados como 'null' para representar "não carregado"
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [sports, setSports] = useState<Sport[]>([]);
   const [aulasHoje, setAulasHoje] = useState<AulaDetalhes[]>([]);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
@@ -126,38 +124,37 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <KPICard
           title="Total de Alunos"
-          value={dashboardStats.totalStudents}
+          value={isLoading ? '--' : dashboardStats?.totalStudents ?? 0}
           icon={<Users className="w-6 h-6 text-white" />}
           color="bg-blue-500"
-          onClick={() => onNavigate && onNavigate('alunos')}
+          onClick={() => !isLoading && onNavigate && onNavigate('alunos')}
         />
         <KPICard
           title="Turmas Ativas"
-          value={dashboardStats.totalClasses}
+          value={isLoading ? '--' : dashboardStats?.totalClasses ?? 0}
           icon={<Calendar className="w-6 h-6 text-white" />}
           color="bg-orange-500"
-          onClick={() => onNavigate && onNavigate('turmas')}
+          onClick={() => !isLoading && onNavigate && onNavigate('turmas')}
         />
         <KPICard
           title="Pagamentos Pendentes"
-          value={dashboardStats.unpaidStudents}
+          value={isLoading ? '--' : dashboardStats?.unpaidStudents ?? 0}
           icon={<AlertCircle className="w-6 h-6 text-white" />}
           color="bg-red-500"
-          onClick={handleOpenUnpaidModal}
+          onClick={() => !isLoading && handleOpenUnpaidModal()}
         />
       </div>
 
-      {isLoading && (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-2">Carregando dados...</p>
+      {/* Exibe um spinner central enquanto os dados principais estão carregando */}
+      {isLoading ? (
+        <div className="text-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 mt-4">Carregando dados do painel...</p>
         </div>
-      )}
-
-      {!isLoading && (
+      ) : (
         <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Navegar por Esportes */}
+          {/* O restante do conteúdo só é renderizado após o carregamento */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Navegar por Esportes</h2>
@@ -165,7 +162,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   Gerenciar Esportes
                 </Button>
               </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {sports.map((sport) => (
                   <SportCard
@@ -177,31 +173,25 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               </div>
             </div>
 
-            {/* Chamadas do Dia */}
             <div>
               <div className="bg-white rounded-lg shadow-md">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900">Aulas do Dia</h3>
-                      <Button variant="ghost" size="sm" onClick={loadDashboardData} disabled={isLoading}>
-                        <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                      </Button>
+                    <h3 className="font-semibold text-gray-900">Aulas do Dia</h3>
+                    <Button variant="ghost" size="sm" onClick={loadDashboardData} disabled={isLoading}>
+                      <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    </Button>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">{new Date().toLocaleDateString('pt-BR')}</p>
                 </div>
-                
                 <div className="p-6">
                   {aulasHoje.length > 0 ? (
                     <div className="space-y-4">
                       {aulasHoje.map(aula => (
-                          <div 
-                            key={aula.id} 
-                            className="p-3 bg-gray-50 rounded-lg cursor-pointer transition-all hover:bg-blue-50 hover:ring-1 hover:ring-blue-300"
-                            onClick={() => setSelectedAula(aula)}
-                          >
-                            <p className="font-semibold text-gray-800">{aula.turmaNome}</p>
-                            <p className="text-sm text-gray-500">{aula.esporteNome} - {aula.totalPresentes}/{aula.totalAlunosNaTurma} presentes</p>
-                          </div>
+                        <div key={aula.id} className="p-3 bg-gray-50 rounded-lg cursor-pointer transition-all hover:bg-blue-50 hover:ring-1 hover:ring-blue-300" onClick={() => setSelectedAula(aula)}>
+                          <p className="font-semibold text-gray-800">{aula.turmaNome}</p>
+                          <p className="text-sm text-gray-500">{aula.esporteNome} - {aula.totalPresentes}/{aula.totalAlunosNaTurma} presentes</p>
+                        </div>
                       ))}
                     </div>
                   ) : (
@@ -214,8 +204,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               </div>
             </div>
           </div>
-
-          {/* NOVO COMPONENTE DE HISTÓRICO ADICIONADO */}
+          
           <AttendanceHistory />
         </>
       )}
