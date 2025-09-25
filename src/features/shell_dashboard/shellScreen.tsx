@@ -36,19 +36,18 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
     if (user.role === 'professor') {
       switch (activeSection) {
         case 'turmas':
-          // CORREÇÃO: A propriedade 'currentUser' foi removida.
           return <ProfessorClassesView onClassClick={handleClassClick} />;
         case 'chamadas':
           return selectedClass ? (
             <AttendanceView classItem={selectedClass} onBack={handleBackFromAttendance} />
           ) : (
-            // CORREÇÃO: A propriedade 'currentUser' foi removida.
             <ProfessorClassesView onClassClick={handleClassClick} />
           );
         case 'sobre':
-          return <AboutPage onBack={() => setActiveSection('turmas')} />;
+          // --- CORREÇÃO APLICADA AQUI ---
+          // A propriedade 'onBack' foi removida
+          return <AboutPage />;
         default:
-          // CORREÇÃO: A propriedade 'currentUser' foi removida.
           return <ProfessorClassesView onClassClick={handleClassClick} />;
       }
     }
@@ -68,7 +67,9 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
       case 'esportes':
         return <SportsManagement />;
       case 'sobre':
-        return <AboutPage onBack={() => setActiveSection('dashboard')} />;
+        // --- CORREÇÃO APLICADA AQUI ---
+        // A propriedade 'onBack' foi removida
+        return <AboutPage />;
       default:
         return <AdminDashboard onNavigate={setActiveSection} />;
     }

@@ -6,7 +6,7 @@ import {
   FileText, 
   FileSpreadsheet, 
   Edit,
-  CheckSquare // Substituindo 'Save'
+  CheckSquare
 } from 'lucide-react';
 import { StudentAttendance } from '../../types';
 import Button from '../../components/ui/Button';
@@ -35,7 +35,13 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
       setStudents(presencas);
       const initialAttendances = new Map<string, StudentAttendance['status']>();
       presencas.forEach(aluno => {
-        initialAttendances.set(aluno.idAluno, aluno.status === 'pendente' ? 'ausente' : aluno.status);
+        // Se a chamada já foi feita, carrega o status real, incluindo 'pendente'
+        if (aula.status === 'Realizada') {
+          initialAttendances.set(aluno.idAluno, aluno.status);
+        } else {
+          // Se a chamada está sendo feita agora, 'pendente' é tratado como 'ausente' por padrão
+          initialAttendances.set(aluno.idAluno, aluno.status === 'pendente' ? 'ausente' : aluno.status);
+        }
       });
       setAttendances(initialAttendances);
     } catch (err) {
@@ -54,17 +60,21 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
     }
   }, [isOpen, fetchAttendanceData]);
 
-  const updateAttendance = (studentId: string, status: StudentAttendance['status']) => {
+  const updateAttendance = (studentId: string, status: 'presente' | 'ausente' | 'justificado') => {
     setAttendances(prev => new Map(prev).set(studentId, status));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const presencasParaEnviar = Array.from(attendances.entries()).map(([aluno_id, status]) => ({
-        aluno_id,
-        status,
-      }));
+      // --- CORREÇÃO APLICADA AQUI ---
+      // Garante que o tipo enviado para a API corresponde ao esperado, tratando 'pendente' como 'ausente'.
+      const presencasParaEnviar: { aluno_id: string; status: 'presente' | 'ausente' | 'justificado' }[] 
+        = Array.from(attendances.entries()).map(([aluno_id, status]) => ({
+            aluno_id,
+            status: status === 'pendente' ? 'ausente' : status,
+        }));
+
       await AulaService.submeterChamadaCompleta(aula.id, presencasParaEnviar);
       alert('Chamada salva com sucesso!');
       if (onSave) onSave();
@@ -86,7 +96,7 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
   };
   
   const presentCount = Array.from(attendances.values()).filter(s => s === 'presente').length;
-  const absentCount = Array.from(attendances.values()).filter(s => s === 'ausente').length;
+  const absentCount = Array.from(attendances.values()).filter(s => s === 'ausente' || s === 'pendente').length;
   const justifiedCount = Array.from(attendances.values()).filter(s => s === 'justificado').length;
 
   const getStatusBadge = (status: StudentAttendance['status']) => {
@@ -124,7 +134,7 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
         ) : (
           <div className="divide-y divide-gray-200">
             {students.map((student) => {
-              const status = attendances.get(student.idAluno) || 'ausente';
+              const status = attendances.get(student.idAluno) || 'pendente';
               return (
                 <div key={student.idAluno} className="py-3 flex flex-col md:flex-row items-center justify-between gap-4">
                   <p className="font-medium text-gray-900">{student.nomeAluno}</p>
@@ -148,7 +158,6 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
       <div className="p-4 border-t bg-gray-50 flex justify-end">
           {isEditing ? (
             <Button onClick={handleSave} isLoading={isSaving} size="lg">
-              {/* --- CORREÇÃO APLICADA AQUI: Ícone substituído --- */}
               <CheckSquare className="w-4 h-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>

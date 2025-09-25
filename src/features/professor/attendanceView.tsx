@@ -1,16 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  ArrowLeft, 
-  Users, 
-  Calendar, 
-  Save, 
-  Check, 
-  X, 
-  Clock, 
-  AlertTriangle,
-  HelpCircle,
-  FileText,
-  FileSpreadsheet 
+  ArrowLeft, Users, Calendar, Save, Check, X, Clock, AlertTriangle, 
+  HelpCircle, FileText, FileSpreadsheet, Lock
 } from 'lucide-react';
 import { Class, StudentAttendance } from '../../types';
 import Button from '../../components/ui/Button';
@@ -22,6 +13,18 @@ interface AttendanceViewProps {
   onBack: () => void;
 }
 
+// Helper component to display the status badge
+const StatusBadge = ({ status }: { status: StudentAttendance['status'] }) => {
+    const styles = {
+      presente: 'bg-green-100 text-green-800',
+      ausente: 'bg-red-100 text-red-800',
+      justificado: 'bg-yellow-100 text-yellow-800',
+      pendente: 'bg-gray-100 text-gray-800',
+    };
+    const text = status.charAt(0).toUpperCase() + status.slice(1);
+    return <span className={`px-3 py-1 text-sm font-medium rounded-full ${styles[status]}`}>{text}</span>;
+};
+
 export default function AttendanceView({ classItem, onBack }: AttendanceViewProps) {
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendances, setAttendances] = useState<Map<string, StudentAttendance['status']>>(new Map());
@@ -31,6 +34,8 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isInstructionsModalOpen, setIsInstructionsModalOpen] = useState(false);
+
+  const isReadOnly = currentAula?.status === 'Realizada';
 
   const fetchAttendanceData = useCallback(async (date: string) => {
     setIsLoading(true);
@@ -51,7 +56,10 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
 
         const initialAttendances = new Map<string, StudentAttendance['status']>();
         presencas.forEach(aluno => {
-          initialAttendances.set(aluno.idAluno, aluno.status === 'pendente' ? 'ausente' : aluno.status);
+          const statusInicial = aulaDoDia.status === 'Realizada' 
+            ? aluno.status 
+            : (aluno.status === 'pendente' ? 'ausente' : aluno.status);
+          initialAttendances.set(aluno.idAluno, statusInicial);
         });
         setAttendances(initialAttendances);
       }
@@ -67,22 +75,24 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
     fetchAttendanceData(attendanceDate);
   }, [fetchAttendanceData, attendanceDate]);
 
-  const updateAttendance = (studentId: string, status: StudentAttendance['status']) => {
+  const updateAttendance = (studentId: string, status: 'presente' | 'ausente' | 'justificado') => {
+    if (isReadOnly) return;
     setAttendances(prev => new Map(prev).set(studentId, status));
   };
 
   const handleSave = async () => {
-    if (!currentAula) {
-      alert("Não há uma aula selecionada para salvar a chamada.");
-      return;
-    }
+    if (!currentAula) return alert("Não há aula para salvar.");
     
     setIsSaving(true);
     try {
-      const presencasParaEnviar = Array.from(attendances.entries()).map(([aluno_id, status]) => ({
-        aluno_id,
-        status,
-      }));
+      // --- CORRECTION APPLIED HERE ---
+      // The type now correctly reflects what is being sent
+      const presencasParaEnviar: { aluno_id: string; status: 'presente' | 'ausente' | 'justificado' }[] 
+        = Array.from(attendances.entries()).map(([aluno_id, status]) => ({
+            aluno_id,
+            // Ensure we never send 'pendente' to the backend
+            status: status === 'pendente' ? 'ausente' : status,
+        }));
 
       await AulaService.submeterChamadaCompleta(currentAula.id, presencasParaEnviar);
       alert('Chamada salva com sucesso!');
@@ -96,14 +106,11 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
   };
 
   const handleExport = async (formato: 'pdf' | 'xlsx') => {
-    if (!currentAula) {
-        alert('Selecione uma aula com chamada para exportar.');
-        return;
-    }
+    if (!currentAula) return alert('Selecione uma aula para exportar.');
     try {
       await AulaService.exportarChamada(currentAula.id, formato);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro desconhecido ao exportar');
+      alert(error instanceof Error ? error.message : 'Erro ao exportar');
     }
   };
   
@@ -128,21 +135,14 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
                   </div>
               </div>
           </div>
-          {/* --- CORREÇÃO APLICADA AQUI: 'variant' alterada para "secondary" --- */}
           <div className="flex space-x-2 shrink-0 self-start sm:self-center">
-              <Button variant="secondary" size="sm" onClick={() => setIsInstructionsModalOpen(true)}>
-                  <HelpCircle className="w-4 h-4 mr-2" /> Instruções
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => handleExport('pdf')}>
-                  <FileText className="w-4 h-4 mr-2" /> PDF
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => handleExport('xlsx')}>
-                  <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
-              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setIsInstructionsModalOpen(true)}><HelpCircle className="w-4 h-4 mr-2" /> Instruções</Button>
+              <Button variant="secondary" size="sm" onClick={() => handleExport('pdf')}><FileText className="w-4 h-4 mr-2" /> PDF</Button>
+              <Button variant="secondary" size="sm" onClick={() => handleExport('xlsx')}><FileSpreadsheet className="w-4 h-4 mr-2" /> Excel</Button>
           </div>
       </div>
 
-      {/* Date Selection & Summary */}
+      {/* Date Selector & Counters */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
@@ -151,10 +151,9 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
               type="date"
               value={attendanceDate}
               onChange={(e) => setAttendanceDate(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg"
             />
           </div>
-          
           <div className="flex space-x-6">
             <div className="text-center"><div className="text-2xl font-bold text-green-600">{presentCount}</div><div className="text-sm text-gray-600">Presentes</div></div>
             <div className="text-center"><div className="text-2xl font-bold text-red-600">{absentCount}</div><div className="text-sm text-gray-600">Ausentes</div></div>
@@ -163,7 +162,7 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
         </div>
       </div>
 
-      {/* Content Area */}
+      {/* Student List */}
       <div className="bg-white rounded-lg shadow-md">
         {isLoading ? (
           <div className="p-12 text-center text-gray-500">Carregando chamada...</div>
@@ -181,54 +180,51 @@ export default function AttendanceView({ classItem, onBack }: AttendanceViewProp
             
             <div className="divide-y divide-gray-200">
               {students.map((student) => {
-                const status = attendances.get(student.idAluno) || 'ausente';
+                const status = attendances.get(student.idAluno) || 'pendente';
                 return (
                   <div key={student.idAluno} className="p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                        <span className="font-medium text-blue-600 text-lg">
-                          {student.nomeAluno.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900">{student.nomeAluno}</h3>
-                      </div>
-                    </div>
+                    <h3 className="font-medium text-gray-900">{student.nomeAluno}</h3>
                     
-                    <div className="flex space-x-2 shrink-0">
-                      <Button variant={status === 'presente' ? 'primary' : 'secondary'} onClick={() => updateAttendance(student.idAluno, 'presente')}><Check className="w-4 h-4 mr-1" /> Presente</Button>
-                      <Button variant={status === 'ausente' ? 'danger' : 'secondary'} onClick={() => updateAttendance(student.idAluno, 'ausente')}><X className="w-4 h-4 mr-1" /> Ausente</Button>
-                      <Button variant={status === 'justificado' ? 'ghost' : 'secondary'} className={status === 'justificado' ? 'bg-yellow-100 text-yellow-800' : ''} onClick={() => updateAttendance(student.idAluno, 'justificado')}><Clock className="w-4 h-4 mr-1" /> Justificado</Button>
-                    </div>
+                    {isReadOnly ? (
+                        <StatusBadge status={status} />
+                    ) : (
+                        <div className="flex space-x-2 shrink-0">
+                            <Button variant={status === 'presente' ? 'primary' : 'secondary'} onClick={() => updateAttendance(student.idAluno, 'presente')}><Check className="w-4 h-4 mr-1" /> Presente</Button>
+                            <Button variant={status === 'ausente' ? 'danger' : 'secondary'} onClick={() => updateAttendance(student.idAluno, 'ausente')}><X className="w-4 h-4 mr-1" /> Ausente</Button>
+                            <Button variant={status === 'justificado' ? 'ghost' : 'secondary'} className={status === 'justificado' ? 'bg-yellow-100 text-yellow-800' : ''} onClick={() => updateAttendance(student.idAluno, 'justificado')}><Clock className="w-4 h-4 mr-1" /> Justificado</Button>
+                        </div>
+                    )}
                   </div>
                 );
               })}
             </div>
             
             <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex justify-end">
-                <Button onClick={handleSave} isLoading={isSaving} size="lg">
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Salvando...' : 'Salvar Chamada'}
-                </Button>
-              </div>
+              {isReadOnly ? (
+                <div className="flex justify-end items-center gap-2 text-gray-600">
+                  <Lock className="w-5 h-5" />
+                  <span className="font-medium">Chamada já finalizada. Apenas administradores podem editar.</span>
+                </div>
+              ) : (
+                <div className="flex justify-end">
+                  <Button onClick={handleSave} isLoading={isSaving} size="lg">
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSaving ? 'Salvando...' : 'Salvar Chamada'}
+                  </Button>
+                </div>
+              )}
             </div>
           </>
         )}
       </div>
 
-      {/* Modal de Instruções */}
-      <Modal
-        isOpen={isInstructionsModalOpen}
-        onClose={() => setIsInstructionsModalOpen(false)}
-        title="Como Fazer a Chamada"
-      >
+      <Modal isOpen={isInstructionsModalOpen} onClose={() => setIsInstructionsModalOpen(false)} title="Como Fazer a Chamada">
         <div className="space-y-4 text-gray-700">
           <p>1. Selecione a data da aula que deseja registrar a presença.</p>
           <p>2. A lista de alunos matriculados na turma será exibida abaixo.</p>
           <p>3. Para cada aluno, clique em "Presente", "Ausente" ou "Justificado".</p>
-          <p>4. Ao finalizar, clique em "Salvar Chamada" no final da página para registrar as presenças no sistema.</p>
-          <p>5. Use os botões "PDF" ou "Excel" para baixar um relatório da chamada do dia selecionado.</p>
+          <p>4. Ao finalizar, clique em "Salvar Chamada" para registrar as presenças no sistema.</p>
+          <p>5. Uma vez salva, a chamada não poderá mais ser editada por você.</p>
         </div>
       </Modal>
     </div>

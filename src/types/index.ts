@@ -69,7 +69,7 @@ export interface Attendance {
 
 export interface StudentAttendance {
   studentId: string;
-  status: 'presente' | 'ausente' | 'justificado';
+status: 'presente' | 'ausente' | 'justificado' | 'pendente';
 }
 
 export interface DashboardStats {
