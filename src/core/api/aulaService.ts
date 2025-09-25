@@ -106,7 +106,21 @@ class AulaService {
       throw new Error(`Não foi possível gerar o arquivo ${formato}.`);
     }
   }
-}
 
+  async getHistoricoAulas(filtros: { data?: string, turma?: string }): Promise<AulaDetalhes[]> {
+    try {
+      const params = new URLSearchParams();
+      if (filtros.data) params.append('data', filtros.data);
+      if (filtros.turma) params.append('turma', filtros.turma);
+
+      const response = await apiClient.get<ApiAula[]>(`/aulas/historico?${params.toString()}`);
+      // Reutilizamos a função de conversão que já temos
+      return response.data.map(apiAula => this.convertApiAulaToAulaDetalhes(apiAula));
+    } catch (error) {
+      console.error('Erro ao buscar histórico de aulas:', error);
+      throw new Error('Erro ao carregar histórico de aulas');
+    }
+  }
+}
 
 export default new AulaService();
