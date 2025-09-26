@@ -3,7 +3,7 @@ import axios from 'axios';
 // 1. DEFINIÇÃO DA URL BASE
 // Padronizamos a URL de fallback para 'localhost' para garantir consistência
 // com a configuração do CORS no backend e evitar problemas.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://orangepizero3.taild57440.ts.net/api';
 
 // 2. CRIAÇÃO DA INSTÂNCIA DO AXIOS
 // Criamos uma instância única do Axios que será usada em toda a aplicação.
