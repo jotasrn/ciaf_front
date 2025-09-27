@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { User, Class } from '../../types';
+import { AulaDetalhes } from '../../core/api/aulaService';
+
+// Components
 import Sidebar from '../../components/ui/Sidebar';
 import AdminDashboard from '../admin_dashboard/adminDashboard';
 import UsersManagement from '../admin_dashboard/usersManagement';
@@ -20,35 +23,42 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
   const [activeSection, setActiveSection] = useState(user.role === 'professor' ? 'turmas' : 'dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  const [selectedAula, setSelectedAula] = useState<AulaDetalhes | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const handleClassClick = (classItem: Class) => {
+  const handleClassClick = (classItem: Class, aula: AulaDetalhes) => {
     setSelectedClass(classItem);
+    setSelectedAula(aula);
     setActiveSection('chamadas');
   };
 
   const handleBackFromAttendance = () => {
     setSelectedClass(null);
+    setSelectedAula(null);
     setActiveSection('turmas');
+    // Força o componente de turmas a recarregar buscando dados novos do servidor
+    setReloadKey(prevKey => prevKey + 1);
   };
 
   const renderContent = () => {
-    // Painel do Professor
     if (user.role === 'professor') {
       switch (activeSection) {
         case 'turmas':
-          return <ProfessorClassesView onClassClick={handleClassClick} />;
+          return <ProfessorClassesView key={reloadKey} onClassClick={handleClassClick} />;
         case 'chamadas':
-          return selectedClass ? (
-            <AttendanceView classItem={selectedClass} onBack={handleBackFromAttendance} />
+          return selectedClass && selectedAula ? (
+            <AttendanceView 
+              classItem={selectedClass} 
+              aula={selectedAula}
+              onBack={handleBackFromAttendance} 
+            />
           ) : (
-            <ProfessorClassesView onClassClick={handleClassClick} />
+            <ProfessorClassesView key={reloadKey} onClassClick={handleClassClick} />
           );
         case 'sobre':
-          // --- CORREÇÃO APLICADA AQUI ---
-          // A propriedade 'onBack' foi removida
           return <AboutPage />;
         default:
-          return <ProfessorClassesView onClassClick={handleClassClick} />;
+          return <ProfessorClassesView key={reloadKey} onClassClick={handleClassClick} />;
       }
     }
 
@@ -67,14 +77,11 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
       case 'esportes':
         return <SportsManagement />;
       case 'sobre':
-        // --- CORREÇÃO APLICADA AQUI ---
-        // A propriedade 'onBack' foi removida
         return <AboutPage />;
       default:
         return <AdminDashboard onNavigate={setActiveSection} />;
     }
   };
-
   const getSectionTitle = () => {
     if (user.role === 'professor') {
       switch (activeSection) {

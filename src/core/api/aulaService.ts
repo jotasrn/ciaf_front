@@ -121,6 +121,20 @@ class AulaService {
       throw new Error('Erro ao carregar histórico de aulas');
     }
   }
+
+    async getOrCreateAula(turmaId: string, data: Date): Promise<AulaDetalhes> {
+    try {
+      const response = await apiClient.post<ApiAula>('/aulas/get-or-create', {
+        turma_id: turmaId,
+        data: data.toISOString().split('T')[0], // Envia a data no formato AAAA-MM-DD
+      });
+      return this.convertApiAulaToAulaDetalhes(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar ou criar a aula:', error);
+      throw new Error('Não foi possível obter os dados da aula para a chamada.');
+    }
+  }
+
 }
 
 export default new AulaService();

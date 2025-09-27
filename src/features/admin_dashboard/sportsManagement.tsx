@@ -7,7 +7,6 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Dropdown from '../../components/ui/Dropdown';
 
-// Componente de formulário (sem alterações, já estava bom)
 const SportForm = ({ 
   sport, 
   onSave, 

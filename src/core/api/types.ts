@@ -48,7 +48,7 @@ export interface ApiTurma {
 export interface ApiAula {
   _id: MongoId;
   data: MongoDate;
-  status: 'Agendada' | 'Realizada';
+  status: 'agendada' | 'realizada';
   turma_nome: string;
   esporte_nome: string;
   total_alunos_na_turma: number;

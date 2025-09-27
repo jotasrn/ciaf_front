@@ -4,6 +4,7 @@ export interface User {
   email: string;
   role: 'admin' | 'professor';
   createdAt: string;
+    birthDate?: string;
 }
 
 export interface Guardian {
