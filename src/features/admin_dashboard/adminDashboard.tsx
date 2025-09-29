@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, Calendar, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 import DashboardService from '../../core/api/dashboardService';
 import SportService from '../../core/api/sportService';
 import UserService from '../../core/api/userService';
@@ -173,36 +173,45 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               </div>
             </div>
 
-            <div>
-              <div className="bg-white rounded-lg shadow-md">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">Aulas do Dia</h3>
-                    <Button variant="ghost" size="sm" onClick={loadDashboardData} disabled={isLoading}>
-                      <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    </Button>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">{new Date().toLocaleDateString('pt-BR')}</p>
-                </div>
-                <div className="p-6">
-                  {aulasHoje.length > 0 ? (
-                    <div className="space-y-4">
-                      {aulasHoje.map(aula => (
-                        <div key={aula.id} className="p-3 bg-gray-50 rounded-lg cursor-pointer transition-all hover:bg-blue-50 hover:ring-1 hover:ring-blue-300" onClick={() => setSelectedAula(aula)}>
-                          <p className="font-semibold text-gray-800">{aula.turmaNome}</p>
-                          <p className="text-sm text-gray-500">{aula.esporteNome} - {aula.totalPresentes}/{aula.totalAlunosNaTurma} presentes</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">Nenhuma aula agendada para hoje.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+                  <div>
+        <div className="bg-white rounded-lg shadow-md">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Aulas do Dia</h3>
+              <Button variant="ghost" size="sm" onClick={loadDashboardData} disabled={isLoading}>
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
+            <p className="text-sm text-gray-600 mt-1">{new Date().toLocaleDateString('pt-BR')}</p>
+          </div>
+          <div className="p-6">
+            {aulasHoje.length > 0 ? (
+              <div className="space-y-4">
+                {aulasHoje.map(aula => (
+                  <div 
+                    key={aula.id} 
+                    className="p-3 bg-gray-50 rounded-lg cursor-pointer transition-all hover:bg-blue-50 hover:ring-1 hover:ring-blue-300" 
+                    onClick={() => setSelectedAula(aula)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-gray-800">{aula.turmaNome}</p>
+                      {aula.status.toLowerCase() === 'realizada' && (
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500">{aula.esporteNome} - {aula.totalPresentes}/{aula.totalAlunosNaTurma} presentes</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Nenhuma aula agendada para hoje.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
           </div>
           
           <AttendanceHistory />

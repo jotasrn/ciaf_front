@@ -34,8 +34,7 @@ export default function AttendanceView({ classItem, aula, onBack }: AttendanceVi
   const [isSaving, setIsSaving] = useState(false);
   const [isInstructionsModalOpen, setIsInstructionsModalOpen] = useState(false);
   
-  // A verificação agora usa 'Realizada' (maiúsculo) para corresponder ao tipo
-  const isReadOnly = currentAula?.status === 'Realizada';
+  const isReadOnly = currentAula?.status === 'realizada';
 
   useEffect(() => {
     const fetchPresencas = async () => {
@@ -48,7 +47,7 @@ export default function AttendanceView({ classItem, aula, onBack }: AttendanceVi
 
         const initialAttendances = new Map<string, StudentAttendance['status']>();
         presencas.forEach(aluno => {
-          const statusInicial = currentAula.status === 'Realizada' 
+          const statusInicial = currentAula.status === 'realizada' 
             ? aluno.status 
             : (aluno.status === 'pendente' ? 'ausente' : aluno.status);
           initialAttendances.set(aluno.idAluno, statusInicial);
@@ -84,9 +83,8 @@ export default function AttendanceView({ classItem, aula, onBack }: AttendanceVi
       await AulaService.submeterChamadaCompleta(currentAula.id, presencasParaEnviar);
       alert('Chamada salva com sucesso!');
       
-      // --- CORREÇÃO DE TIPO APLICADA AQUI ---
-      // Agora atualiza o estado com o valor "Realizada" (maiúsculo), que é compatível com o tipo AulaDetalhes.
-      setCurrentAula(prev => ({ ...prev!, status: 'Realizada' }));
+      
+      setCurrentAula(prev => ({ ...prev!, status: 'realizada' }));
       
     } catch (err) {
       alert('Erro ao salvar a chamada.');

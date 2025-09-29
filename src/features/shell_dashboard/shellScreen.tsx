@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { User, Class } from '../../types';
-import { AulaDetalhes } from '../../core/api/aulaService';
+import { AulaDetalhes } from '../../core/api/aulaService'; // Importação necessária
 
 // Components
 import Sidebar from '../../components/ui/Sidebar';
@@ -22,8 +22,12 @@ interface ShellScreenProps {
 export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
   const [activeSection, setActiveSection] = useState(user.role === 'professor' ? 'turmas' : 'dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedAula, setSelectedAula] = useState<AulaDetalhes | null>(null);
+
+  // --- NOVO ESTADO PARA FORÇAR A RECARGA ---
+  // Este estado será usado para mudar a 'key' do componente de turmas.
   const [reloadKey, setReloadKey] = useState(0);
 
   const handleClassClick = (classItem: Class, aula: AulaDetalhes) => {
@@ -36,14 +40,19 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
     setSelectedClass(null);
     setSelectedAula(null);
     setActiveSection('turmas');
-    // Força o componente de turmas a recarregar buscando dados novos do servidor
+    // --- LÓGICA DE RECARGA ---
+    // Incrementa a chave. Isso fará com que o React desmonte e remonte
+    // o componente ProfessorClassesView, forçando uma nova busca de dados.
     setReloadKey(prevKey => prevKey + 1);
   };
 
   const renderContent = () => {
+    // Painel do Professor
     if (user.role === 'professor') {
       switch (activeSection) {
         case 'turmas':
+          // --- ADICIONADA A 'key' AQUI ---
+          // Ao mudar a key, o componente é recriado do zero, buscando dados novos.
           return <ProfessorClassesView key={reloadKey} onClassClick={handleClassClick} />;
         case 'chamadas':
           return selectedClass && selectedAula ? (
@@ -53,6 +62,7 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
               onBack={handleBackFromAttendance} 
             />
           ) : (
+            // Fallback caso algo dê errado, retorna para a tela de turmas
             <ProfessorClassesView key={reloadKey} onClassClick={handleClassClick} />
           );
         case 'sobre':
@@ -62,7 +72,7 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
       }
     }
 
-    // Painel do Administrador
+    // Painel do Administrador (sem alterações)
     switch (activeSection) {
       case 'dashboard':
         return <AdminDashboard onNavigate={setActiveSection} />;
@@ -82,6 +92,7 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
         return <AdminDashboard onNavigate={setActiveSection} />;
     }
   };
+
   const getSectionTitle = () => {
     if (user.role === 'professor') {
       switch (activeSection) {
