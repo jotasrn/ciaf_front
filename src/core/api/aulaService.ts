@@ -5,7 +5,7 @@ import { ApiAula, ApiPresenca, MarcarPresencaRequest, extractId, extractDate, fo
 export interface AulaDetalhes {
   id: string;
   data: string; // CORRIGIDO: De Date para string
-  status: 'Agendada' | 'Realizada';
+  status: 'agendada' | 'realizada';
   turmaNome: string;
   esporteNome: string;
   totalAlunosNaTurma: number;
