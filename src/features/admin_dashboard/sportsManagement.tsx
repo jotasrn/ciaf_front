@@ -25,6 +25,8 @@ const SportForm = ({
     e.preventDefault();
     if (name && icon) {
       onSave({ nome: name, icone: icon });
+    } else {
+      alert('Por favor, preencha o nome e selecione um ícone.');
     }
   };
 
@@ -43,25 +45,29 @@ const SportForm = ({
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Ícone (Emoji)</label>
-        <div className="grid grid-cols-6 gap-3 mb-4">
+        
+        <div className="grid grid-cols-6 gap-2 mb-4">
           {commonSportIcons.map((iconOption) => (
             <button
               key={iconOption}
               type="button"
               onClick={() => setIcon(iconOption)}
-              className={`p-3 text-2xl border-2 rounded-lg transition-colors ${
-                icon === iconOption ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
+              className={`p-3 text-2xl border-2 rounded-lg transition-colors text-center ${
+                icon === iconOption 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:bg-gray-100'
               }`}
             >
               {iconOption}
             </button>
           ))}
         </div>
+        
         <input
           type="text"
           value={icon}
           onChange={(e) => setIcon(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg mt-2"
           placeholder="Ou cole um emoji aqui"
           required
         />

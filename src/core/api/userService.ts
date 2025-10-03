@@ -90,19 +90,20 @@ class UserService {
     }
   }
 
-  async createUser(userData: Partial<User>, password: string):Promise<void> {
+    async createUser(userData: Partial<User>, password: string): Promise<void> {
     try {
-        const createData: CreateUserRequest = {
-            nome_completo: userData.name || '',
-            email: userData.email || '',
-            senha: password,
-            perfil: userData.role || 'professor',
-            ativo: true
-        };
-        await apiClient.post('/usuarios', createData);
+
+      const createData: CreateUserRequest = {
+          nome_completo: userData.name || '',
+          email: userData.email || '',
+          senha: password,
+          perfil: userData.role || 'professor', 
+          ativo: true
+      };
+      await apiClient.post('/usuarios', createData);
     } catch (error) {
-        console.error('Erro ao criar usuário:', error);
-        throw new Error('Erro ao criar usuário');
+      console.error('Erro ao criar usuário:', error);
+      throw new Error('Erro ao criar usuário');
     }
   }
 

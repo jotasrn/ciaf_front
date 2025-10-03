@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import SplashScreen from './features/auth/splashScreen';
 import LoginScreen from './features/auth/loginScreen';
 import ShellScreen from './features/shell_dashboard/shellScreen';
@@ -32,19 +35,31 @@ function App() {
     setAppState('login');
   };
 
-  if (appState === 'loading') {
-    return <SplashScreen onAuthCheck={handleAuthCheck} />;
-  }
+  return (
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
 
-  if (appState === 'login') {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
-
-  if (appState === 'authenticated' && currentUser) {
-    return <ShellScreen user={currentUser} onLogout={handleLogout} />;
-  }
-
-  return <div className="min-h-screen bg-gray-100 flex items-center justify-center">Carregando sessão...</div>;
+      {appState === 'loading' && <SplashScreen onAuthCheck={handleAuthCheck} />}
+      {appState === 'login' && <LoginScreen onLogin={handleLogin} />}
+      {appState === 'authenticated' && currentUser && (
+        <ShellScreen user={currentUser} onLogout={handleLogout} />
+      )}
+      {appState === 'authenticated' && !currentUser && (
+         <div className="min-h-screen bg-gray-100 flex items-center justify-center">Carregando sessão...</div>
+      )}
+    </>
+  );
 }
 
 export default App;

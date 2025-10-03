@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Menu, X } from 'lucide-react'; // Importar os ícones necessários
 import { User, Class } from '../../types';
-import { AulaDetalhes } from '../../core/api/aulaService'; // Importação necessária
+import { AulaDetalhes } from '../../core/api/aulaService';
 
 // Components
 import Sidebar from '../../components/ui/Sidebar';
@@ -25,9 +26,6 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
   
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedAula, setSelectedAula] = useState<AulaDetalhes | null>(null);
-
-  // --- NOVO ESTADO PARA FORÇAR A RECARGA ---
-  // Este estado será usado para mudar a 'key' do componente de turmas.
   const [reloadKey, setReloadKey] = useState(0);
 
   const handleClassClick = (classItem: Class, aula: AulaDetalhes) => {
@@ -40,9 +38,7 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
     setSelectedClass(null);
     setSelectedAula(null);
     setActiveSection('turmas');
-    // --- LÓGICA DE RECARGA ---
-    // Incrementa a chave. Isso fará com que o React desmonte e remonte
-    // o componente ProfessorClassesView, forçando uma nova busca de dados.
+    // Força o componente de turmas a recarregar buscando dados novos
     setReloadKey(prevKey => prevKey + 1);
   };
 
@@ -51,8 +47,6 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
     if (user.role === 'professor') {
       switch (activeSection) {
         case 'turmas':
-          // --- ADICIONADA A 'key' AQUI ---
-          // Ao mudar a key, o componente é recriado do zero, buscando dados novos.
           return <ProfessorClassesView key={reloadKey} onClassClick={handleClassClick} />;
         case 'chamadas':
           return selectedClass && selectedAula ? (
@@ -62,7 +56,6 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
               onBack={handleBackFromAttendance} 
             />
           ) : (
-            // Fallback caso algo dê errado, retorna para a tela de turmas
             <ProfessorClassesView key={reloadKey} onClassClick={handleClassClick} />
           );
         case 'sobre':
@@ -72,7 +65,7 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
       }
     }
 
-    // Painel do Administrador (sem alterações)
+    // Painel do Administrador
     switch (activeSection) {
       case 'dashboard':
         return <AdminDashboard onNavigate={setActiveSection} />;
@@ -126,12 +119,23 @@ export default function ShellScreen({ user, onLogout }: ShellScreenProps) {
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="md:hidden bg-white border-b border-gray-200 px-4 py-3">
-          <div className="ml-12">
-            <h1 className="text-lg font-semibold text-gray-900 capitalize">
-              {getSectionTitle()}
-            </h1>
-          </div>
+        {/* --- HEADER CORRIGIDA PARA MOBILE --- */}
+        <header className="md:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-30">
+          {/* 1. Botão do menu agora está aqui dentro, sem flutuar */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
+          </button>
+          
+          {/* 2. Título da seção, centralizado */}
+          <h1 className="text-lg font-semibold text-gray-900 capitalize absolute left-1/2 -translate-x-1/2">
+            {getSectionTitle()}
+          </h1>
+
+          {/* Espaçador para manter o título centralizado corretamente */}
+          <div className="w-10"></div> 
         </header>
         
         <main className="flex-1 overflow-y-auto">

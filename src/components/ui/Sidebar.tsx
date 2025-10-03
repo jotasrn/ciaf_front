@@ -7,8 +7,6 @@ import {
   Calendar,
   Trophy,
   LogOut,
-  Menu,
-  X,
   Info
 } from 'lucide-react';
 import { User } from '../../types';
@@ -74,7 +72,7 @@ export default function Sidebar({
               key={item.id}
               onClick={() => {
                 onSectionChange(item.id);
-                if (window.innerWidth < 768) {
+                if (window.innerWidth < 768) { // md breakpoint
                   onMobileToggle();
                 }
               }}
@@ -106,14 +104,6 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={onMobileToggle}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-blue-900 text-white rounded-lg shadow-lg"
-      >
-        {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-64 h-screen sticky top-0">
         <SidebarContent />

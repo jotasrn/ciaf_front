@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-// CORREÇÃO: Importa o serviço de API real, não o mock
 import AuthService from '../../core/api/authService';
 
 interface SplashScreenProps {
@@ -9,10 +8,8 @@ interface SplashScreenProps {
 export default function SplashScreen({ onAuthCheck }: SplashScreenProps) {
   useEffect(() => {
     const checkAuth = () => {
-      // CORREÇÃO: Chamada direta ao método do serviço
       const isAuthenticated = AuthService.isAuthenticated();
       
-      // Simula um tempo de carregamento para a splash screen
       setTimeout(() => {
         onAuthCheck(isAuthenticated);
       }, 1500);

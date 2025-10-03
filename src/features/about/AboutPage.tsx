@@ -33,7 +33,6 @@ export default function AboutPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Header - Botão Voltar foi removido */}
       <div className="flex items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Sobre o Sistema</h1>
       </div>
