@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 // CORREÇÃO: Ícone 'Trophy' removido pois não era utilizado.
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, CreditCard as Edit, Trash2 } from 'lucide-react';
 import SportService from '../../core/api/sportService';
 import { Sport } from '../../types';
 import Button from '../../components/ui/Button';

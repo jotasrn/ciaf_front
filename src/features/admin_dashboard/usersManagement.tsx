@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, CreditCard as Edit, Trash2 } from 'lucide-react';
 import UserService from '../../core/api/userService';
 import { User } from '../../types';
 import Button from '../../components/ui/Button';

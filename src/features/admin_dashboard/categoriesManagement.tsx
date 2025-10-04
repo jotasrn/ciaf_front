@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { Plus, Search, FolderOpen, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, FolderOpen, CreditCard as Edit, Trash2 } from 'lucide-react';
 import CategoryService from '../../core/api/categoryService';
 import SportService from '../../core/api/sportService';
 import { Category, Sport } from '../../types';
