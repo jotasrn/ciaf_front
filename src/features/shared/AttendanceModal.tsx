@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  Check, 
-  X, 
-  Clock, 
-  FileText, 
-  FileSpreadsheet, 
+import {
+  Check,
+  X,
+  Clock,
+  FileText,
+  FileSpreadsheet,
   Edit,
   CheckSquare
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { StudentAttendance } from '../../types';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -45,7 +46,7 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
       });
       setAttendances(initialAttendances);
     } catch (err) {
-      alert('Erro ao carregar os dados da chamada.');
+      toast.error('Erro ao carregar os dados da chamada.');
       console.error(err);
       onClose();
     } finally {
@@ -76,11 +77,11 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
         }));
 
       await AulaService.submeterChamadaCompleta(aula.id, presencasParaEnviar);
-      alert('Chamada salva com sucesso!');
+      toast.success('Chamada salva com sucesso!');
       if (onSave) onSave();
       onClose();
     } catch (err) {
-      alert('Erro ao salvar a chamada.');
+      toast.error('Erro ao salvar a chamada.');
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -91,7 +92,7 @@ export default function AttendanceModal({ aula, isOpen, onClose, onSave }: Atten
     try {
       await AulaService.exportarChamada(aula.id, formato);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro desconhecido ao exportar');
+      toast.error(error instanceof Error ? error.message : 'Erro desconhecido ao exportar');
     }
   };
   

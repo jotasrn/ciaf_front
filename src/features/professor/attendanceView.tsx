@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'; // 'useCallback' foi removido
+import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify'; // 'useCallback' foi removido
 import { 
   ArrowLeft, Users, Calendar, Save, Check, X, Clock, 
   HelpCircle, FileText, FileSpreadsheet, Lock 
@@ -55,7 +56,7 @@ export default function AttendanceView({ classItem, aula, onBack }: AttendanceVi
         setAttendances(initialAttendances);
 
       } catch (err) {
-        alert('Erro ao carregar lista de chamada.');
+        toast.error('Erro ao carregar lista de chamada.');
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -81,13 +82,13 @@ export default function AttendanceView({ classItem, aula, onBack }: AttendanceVi
       }));
 
       await AulaService.submeterChamadaCompleta(currentAula.id, presencasParaEnviar);
-      alert('Chamada salva com sucesso!');
+      toast.success('Chamada salva com sucesso!');
       
       
       setCurrentAula(prev => ({ ...prev!, status: 'realizada' }));
       
     } catch (err) {
-      alert('Erro ao salvar a chamada.');
+      toast.error('Erro ao salvar a chamada.');
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -99,7 +100,7 @@ export default function AttendanceView({ classItem, aula, onBack }: AttendanceVi
     try {
       await AulaService.exportarChamada(currentAula.id, formato);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro ao exportar');
+      toast.error(error instanceof Error ? error.message : 'Erro ao exportar');
     }
   };
   

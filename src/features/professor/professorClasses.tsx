@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import { Users, Calendar, Trophy, ChevronRight } from 'lucide-react';
 import TurmaService from '../../core/api/turmaService';
 import AulaService, { AulaDetalhes } from '../../core/api/aulaService';
@@ -39,7 +40,7 @@ export default function ProfessorClassesView({ onClassClick }: ProfessorClassesV
       const aulaReal = await AulaService.getOrCreateAula(classItem.id, classDate);
       onClassClick(classItem, aulaReal);
     } catch (error) {
-      alert('Não foi possível carregar a folha de chamada. Tente novamente.');
+      toast.error('Não foi possível carregar a folha de chamada. Tente novamente.');
       console.error(error);
       setIsNavigating(null);
     }
