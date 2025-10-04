@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Calendar, Search, Users } from 'lucide-react';
 import AulaService, { AulaDetalhes } from '../../core/api/aulaService';
 import AttendanceModal from '../shared/AttendanceModal';
@@ -21,7 +22,7 @@ export default function AttendanceHistory() {
         setHistorico(data);
       } catch (error) {
         console.error(error);
-        alert('Não foi possível carregar o histórico.');
+        toast.error('Não foi possível carregar o histórico.');
       } finally {
         setIsLoading(false);
       }

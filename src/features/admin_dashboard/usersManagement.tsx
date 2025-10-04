@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
 import UserService from '../../core/api/userService';
 import { User } from '../../types';
@@ -110,26 +111,26 @@ export default function UsersManagement() {
     const { id, name, email, role, password = '' } = formData;
     
     if (!name?.trim() || !email?.trim() || !role) {
-        alert('Por favor, preencha nome, email e perfil.');
+        toast.error('Por favor, preencha nome, email e perfil.');
         return;
     }
 
     try {
         if (id) {
             await UserService.updateUser(id, { name, email, role });
-            alert('Usuário atualizado com sucesso!');
+            toast.success('Usuário atualizado com sucesso!');
         } else {
             if (!password) {
-                alert('A senha temporária é obrigatória para novos usuários.');
+                toast.error('A senha temporária é obrigatória para novos usuários.');
                 return;
             }
             await UserService.createUser({ name, email, role }, password);
-            alert('Usuário criado com sucesso!');
+            toast.success('Usuário criado com sucesso!');
         }
         handleCloseModal();
         await loadUsers();
     } catch (err) {
-        alert('Erro ao salvar usuário.');
+        toast.error('Erro ao salvar usuário.');
         console.error(err);
     }
   };
@@ -138,10 +139,10 @@ export default function UsersManagement() {
     if (window.confirm(`Tem certeza que deseja desativar o usuário ${user.name}?`)) {
       try {
         await UserService.deleteUser(user.id);
-        alert('Usuário desativado com sucesso!');
+        toast.success('Usuário desativado com sucesso!');
         await loadUsers();
       } catch (err) {
-        alert('Erro ao desativar usuário.');
+        toast.error('Erro ao desativar usuário.');
         console.error(err);
       }
     }

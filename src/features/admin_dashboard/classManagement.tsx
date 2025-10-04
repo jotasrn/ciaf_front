@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Plus, Search, Edit, Trash2, Clock, X, Users } from 'lucide-react';
 import Select from 'react-select'; // Biblioteca para seleção múltipla
 
@@ -65,10 +66,10 @@ const ScheduleManager = ({ schedules, setSchedules }: { schedules: ClassSchedule
   ];
 
   const handleAddSchedule = () => {
-    if (!time) { alert("Por favor, informe um horário."); return; }
+    if (!time) { toast.error("Por favor, informe um horário."); return; }
     const newSchedule: ClassSchedule = { dayOfWeek: parseInt(day, 10), time };
     if (schedules.some(s => s.dayOfWeek === newSchedule.dayOfWeek && s.time === newSchedule.time)) {
-        alert("Este horário já foi adicionado."); return;
+        toast.error("Este horário já foi adicionado."); return;
     }
     setSchedules([...schedules, newSchedule].sort((a, b) => a.dayOfWeek - b.dayOfWeek));
   };
@@ -145,7 +146,7 @@ export default function ClassesManagement() {
             setCategories(categoriesData);
             setStudents(studentsData);
         } catch (err) {
-            alert('Falha ao carregar dados. Tente atualizar a página.');
+            toast.error('Falha ao carregar dados. Tente atualizar a página.');
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -185,15 +186,15 @@ export default function ClassesManagement() {
         try {
             if (editingClass.id) {
                 await TurmaService.updateTurma(editingClass.id, classPayload);
-                alert('Turma atualizada com sucesso!');
+                toast.success('Turma atualizada com sucesso!');
             } else {
                 await TurmaService.createTurma(classPayload);
-                alert('Turma criada com sucesso!');
+                toast.success('Turma criada com sucesso!');
             }
             handleCloseFormModal();
             await loadData();
         } catch (err) {
-            alert('Erro ao salvar turma.');
+            toast.error('Erro ao salvar turma.');
             console.error(err);
         }
     };
@@ -202,10 +203,10 @@ export default function ClassesManagement() {
         if (window.confirm('Tem certeza que deseja excluir esta turma?')) {
             try {
                 await TurmaService.deleteTurma(classId);
-                alert('Turma excluída com sucesso!');
+                toast.success('Turma excluída com sucesso!');
                 await loadData();
             } catch (err) {
-                alert('Erro ao excluir turma.');
+                toast.error('Erro ao excluir turma.');
                 console.error(err);
             }
         }

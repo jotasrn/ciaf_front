@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 // CORREÇÃO: Ícone 'Trophy' removido pois não era utilizado.
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
 import SportService from '../../core/api/sportService';
@@ -26,7 +27,7 @@ const SportForm = ({
     if (name && icon) {
       onSave({ nome: name, icone: icon });
     } else {
-      alert('Por favor, preencha o nome e selecione um ícone.');
+      toast.error('Por favor, preencha o nome e selecione um ícone.');
     }
   };
 
@@ -121,16 +122,16 @@ export default function SportsManagement() {
     try {
       if (editingSport?.id) {
         await SportService.updateSport(editingSport.id, sportData);
-        alert('Esporte atualizado com sucesso!');
+        toast.success('Esporte atualizado com sucesso!');
       } else {
         await SportService.createSport(sportData);
-        alert('Esporte criado com sucesso!');
+        toast.success('Esporte criado com sucesso!');
       }
       handleCloseModal();
       await loadSports();
     } catch (err) {
       console.error(err); // CORREÇÃO: Usando a variável 'err'
-      alert('Erro ao salvar esporte.');
+      toast.error('Erro ao salvar esporte.');
     }
   };
 
@@ -138,11 +139,11 @@ export default function SportsManagement() {
     if (window.confirm(`Tem certeza que deseja excluir "${sport.name}"?`)) {
       try {
         await SportService.deleteSport(sport.id);
-        alert('Esporte excluído com sucesso!');
+        toast.success('Esporte excluído com sucesso!');
         await loadSports();
       } catch (err) {
         console.error(err); // CORREÇÃO: Usando a variável 'err'
-        alert('Erro ao excluir esporte.');
+        toast.error('Erro ao excluir esporte.');
       }
     }
   };

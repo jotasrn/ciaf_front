@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Users, Calendar, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 import DashboardService from '../../core/api/dashboardService';
 import SportService from '../../core/api/sportService';
@@ -93,7 +94,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       setAulasHoje(aulasData);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
-      alert('Falha ao carregar dados do dashboard.');
+      toast.error('Falha ao carregar dados do dashboard.');
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +112,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       setUnpaidStudents(studentsData);
     } catch (error) {
       console.error(error);
-      alert('Não foi possível carregar a lista de alunos pendentes.');
+      toast.error('Não foi possível carregar a lista de alunos pendentes.');
       setShowUnpaidModal(false);
     } finally {
       setIsLoadingUnpaid(false);

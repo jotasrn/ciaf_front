@@ -1,6 +1,7 @@
 // src/features/admin_dashboard/categoriesManagement.tsx
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Plus, Search, FolderOpen, Edit, Trash2 } from 'lucide-react';
 import CategoryService from '../../core/api/categoryService';
 import SportService from '../../core/api/sportService';
@@ -60,7 +61,7 @@ export default function CategoriesManagement() {
   const handleSaveCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editingCategory || !editingCategory.name || !editingCategory.sportId || !editingCategory.ageRange) {
-      alert("Por favor, preencha todos os campos.");
+      toast.error("Por favor, preencha todos os campos.");
       return;
     }
 
@@ -68,16 +69,16 @@ export default function CategoriesManagement() {
       const { id, ...categoryData } = editingCategory;
       if (id) {
         await CategoryService.updateCategory(id, categoryData);
-        alert('Categoria atualizada com sucesso!');
+        toast.success('Categoria atualizada com sucesso!');
       } else {
         await CategoryService.createCategory(categoryData as Omit<Category, 'id'>);
-        alert('Categoria criada com sucesso!');
+        toast.success('Categoria criada com sucesso!');
       }
       handleCloseModal();
       await loadData(); // Recarrega os dados
     } catch (err) {
       console.error('Erro ao salvar categoria:', err);
-      alert('Não foi possível salvar a categoria.');
+      toast.error('Não foi possível salvar a categoria.');
     }
   };
 
@@ -85,11 +86,11 @@ export default function CategoriesManagement() {
     if (window.confirm(`Tem certeza que deseja excluir a categoria "${category.name}"?`)) {
       try {
         await CategoryService.deleteCategory(category.id);
-        alert('Categoria excluída com sucesso!');
+        toast.success('Categoria excluída com sucesso!');
         await loadData();
       } catch (err) { // CORREÇÃO: A variável 'err' agora é usada
         console.error('Erro ao excluir categoria:', err);
-        alert('Erro ao excluir a categoria.');
+        toast.error('Erro ao excluir a categoria.');
       }
     }
   };

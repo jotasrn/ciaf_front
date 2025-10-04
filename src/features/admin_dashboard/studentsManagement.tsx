@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
 import UserService from '../../core/api/userService';
 import { Student, Guardian } from '../../types';
@@ -26,7 +27,7 @@ export default function StudentsManagement() {
       const studentsData = await UserService.getStudents();
       setStudents(studentsData);
     } catch (err) {
-      alert('Falha ao carregar alunos. Tente novamente.'); // Usa alert() diretamente
+      toast.error('Falha ao carregar alunos. Tente novamente.'); // Usa alert() diretamente
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -77,15 +78,15 @@ export default function StudentsManagement() {
     try {
       if (editingStudent.id) {
         await UserService.updateStudent(editingStudent.id, editingStudent);
-        alert('Aluno atualizado com sucesso!');
+        toast.success('Aluno atualizado com sucesso!');
       } else {
         await UserService.createStudent({ ...editingStudent, status: 'Ativo' });
-        alert('Aluno criado com sucesso!');
+        toast.success('Aluno criado com sucesso!');
       }
       handleCloseModal();
       await loadStudents();
     } catch (err) {
-      alert('Erro ao salvar aluno.');
+      toast.error('Erro ao salvar aluno.');
       console.error(err);
     }
   };
@@ -94,10 +95,10 @@ export default function StudentsManagement() {
     if (window.confirm(`Tem certeza que deseja desativar o aluno ${student.name}?`)) {
       try {
         await UserService.deleteUser(student.id);
-        alert('Aluno desativado com sucesso!');
+        toast.success('Aluno desativado com sucesso!');
         await loadStudents();
       } catch (err) {
-        alert('Erro ao desativar aluno.');
+        toast.error('Erro ao desativar aluno.');
         console.error(err);
       }
     }
@@ -113,7 +114,7 @@ export default function StudentsManagement() {
     try {
       await UserService.updateStudentPaymentStatus(studentToUpdate.id, newIsPaidStatus);
     } catch (err) {
-      alert('Falha ao atualizar o status de pagamento. A alteração foi desfeita.');
+      toast.error('Falha ao atualizar o status de pagamento. A alteração foi desfeita.');
       console.error(err);
       setStudents(currentStudents =>
         currentStudents.map(s =>
